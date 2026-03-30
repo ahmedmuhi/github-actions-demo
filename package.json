@@ -1,0 +1,14 @@
+{
+  "name": "github-actions-demo",
+  "version": "1.0.0",
+  "description": "A simple shopping cart utility for demonstrating GitHub Actions",
+  "main": "src/cart.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint src/"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0"
+  }
+}

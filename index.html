@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart — GitHub Actions Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-deep: #0a0e17;
+      --bg-surface: #111827;
+      --bg-card: #1a2235;
+      --bg-elevated: #243049;
+      --border: #2a3654;
+      --border-glow: #00e87b33;
+      --text-primary: #e8edf5;
+      --text-secondary: #8899b4;
+      --text-dim: #4a5a78;
+      --accent: #00e87b;
+      --accent-dim: #00e87b22;
+      --accent-mid: #00e87b66;
+      --danger: #ff5c72;
+      --danger-dim: #ff5c7222;
+      --price-tag: #60a5fa;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Outfit', sans-serif;
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeUp 0.6s ease-out both;
+    }
+
+    .header__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .header__badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+
+    .header h1 span {
+      background: linear-gradient(135deg, var(--accent) 0%, #34d399 50%, var(--price-tag) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      font-weight: 300;
+    }
+
+    /* ── Layout ── */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      animation: fadeUp 0.6s ease-out 0.15s both;
+    }
+
+    @media (max-width: 700px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      transition: border-color 0.3s;
+    }
+
+    .card:hover { border-color: var(--accent-mid); }
+
+    .card__title {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Product Shelf ── */
+    .products {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .product:hover {
+      border-color: var(--accent-mid);
+      background: var(--bg-elevated);
+      transform: translateX(4px);
+    }
+
+    .product:active { transform: translateX(4px) scale(0.98); }
+
+    .product__icon {
+      font-size: 1.5rem;
+      width: 2.2rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .product__info { flex: 1; }
+
+    .product__name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .product__price {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--price-tag);
+    }
+
+    .product__add {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .product:hover .product__add { opacity: 1; }
+
+    /* ── Cart ── */
+    .cart-items {
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .cart-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 120px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      animation: slideIn 0.25s ease-out both;
+    }
+
+    .cart-item__icon { font-size: 1.2rem; width: 1.8rem; text-align: center; }
+    .cart-item__name { flex: 1; font-size: 0.9rem; font-weight: 400; }
+
+    .cart-item__price {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--price-tag);
+    }
+
+    .cart-item__remove {
+      background: var(--danger-dim);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--danger);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.55rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .cart-item__remove:hover {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+
+    /* ── Total ── */
+    .cart-total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .cart-total__label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+    }
+
+    .cart-total__value {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      transition: transform 0.15s;
+    }
+
+    .cart-total__value.bump {
+      transform: scale(1.15);
+    }
+
+    /* ── Function Signatures (bottom) ── */
+    .api-strip {
+      margin-top: 1.5rem;
+      animation: fadeUp 0.6s ease-out 0.3s both;
+    }
+
+    .api-strip .card {
+      padding: 1.25rem 1.75rem;
+    }
+
+    .api-funcs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .api-func {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.45rem 0.9rem;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+
+    .api-func:hover {
+      color: var(--accent);
+      border-color: var(--accent-mid);
+    }
+
+    .api-func b {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      animation: fadeUp 0.6s ease-out 0.45s both;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @keyframes itemPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    .pop { animation: itemPop 0.2s ease-out; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header__badge">GitHub Actions Demo</div>
+      <h1>Shopping <span>Cart</span></h1>
+      <p>Click a product to add it. A tiny utility with real tests.</p>
+    </header>
+
+    <!-- Main -->
+    <div class="main">
+      <!-- Products -->
+      <section class="card">
+        <div class="card__title">// Products</div>
+        <div class="products" id="products"></div>
+      </section>
+
+      <!-- Cart -->
+      <section class="card">
+        <div class="card__title">// Your Cart</div>
+        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-total">
+          <span class="cart-total__label">getTotal(cart)</span>
+          <span class="cart-total__value" id="cart-total">$0.00</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- API Strip -->
+    <div class="api-strip">
+      <div class="card">
+        <div class="card__title">// src/cart.js</div>
+        <div class="api-funcs">
+          <span class="api-func"><b>addItem</b>(cart, item, price)</span>
+          <span class="api-func"><b>removeItem</b>(cart, name)</span>
+          <span class="api-func"><b>getTotal</b>(cart)</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      Built for GitHub Copilot Dev Days &middot; Powered by Node.js + Jest + ESLint
+    </footer>
+  </div>
+
+  <script>
+    // ── Cart logic (mirrors src/cart.js) ──
+    function addItem(cart, item, price) {
+      cart.push({ item, price });
+      return cart;
+    }
+
+    function removeItem(cart, name) {
+      const index = cart.findIndex((entry) => entry.item === name);
+      if (index !== -1) {
+        cart.splice(index, 1);
+      }
+      return cart;
+    }
+
+    function getTotal(cart) {
+      return cart.reduce((sum, entry) => sum + entry.price, 0);
+    }
+
+    // ── Data ──
+    const catalog = [
+      { name: 'Espresso',     icon: '\u2615', price: 4.50  },
+      { name: 'Croissant',    icon: '\uD83E\uDD50', price: 3.25  },
+      { name: 'Avocado Toast', icon: '\uD83E\uDD51', price: 8.00  },
+      { name: 'Smoothie',     icon: '\uD83E\uDD64', price: 6.75  },
+      { name: 'Cookie',       icon: '\uD83C\uDF6A', price: 2.50  },
+      { name: 'Salad Bowl',   icon: '\uD83E\uDD57', price: 9.00  },
+    ];
+
+    let cart = [];
+
+    // ── Render ──
+    const $products = document.getElementById('products');
+    const $cartItems = document.getElementById('cart-items');
+    const $total = document.getElementById('cart-total');
+
+    function renderProducts() {
+      $products.innerHTML = catalog.map((p) => `
+        <div class="product" data-name="${p.name}" data-price="${p.price}">
+          <span class="product__icon">${p.icon}</span>
+          <div class="product__info">
+            <div class="product__name">${p.name}</div>
+            <div class="product__price">$${p.price.toFixed(2)}</div>
+          </div>
+          <span class="product__add">+ add</span>
+        </div>
+      `).join('');
+
+      $products.querySelectorAll('.product').forEach((el) => {
+        el.addEventListener('click', () => {
+          const name = el.dataset.name;
+          const price = parseFloat(el.dataset.price);
+          addItem(cart, name, price);
+          renderCart();
+
+          el.classList.add('pop');
+          setTimeout(() => el.classList.remove('pop'), 200);
+        });
+      });
+    }
+
+    function renderCart() {
+      if (cart.length === 0) {
+        $cartItems.innerHTML = '<div class="cart-empty">Cart is empty — click a product</div>';
+      } else {
+        $cartItems.innerHTML = cart.map((entry, i) => {
+          const product = catalog.find((p) => p.name === entry.item);
+          const icon = product ? product.icon : '\uD83D\uDCE6';
+          return `
+            <div class="cart-item" style="animation-delay: ${i * 0.03}s">
+              <span class="cart-item__icon">${icon}</span>
+              <span class="cart-item__name">${entry.item}</span>
+              <span class="cart-item__price">$${entry.price.toFixed(2)}</span>
+              <button class="cart-item__remove" data-name="${entry.item}">remove</button>
+            </div>
+          `;
+        }).join('');
+
+        $cartItems.querySelectorAll('.cart-item__remove').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeItem(cart, btn.dataset.name);
+            renderCart();
+          });
+        });
+      }
+
+      const total = getTotal(cart);
+      $total.textContent = `$${total.toFixed(2)}`;
+      $total.classList.add('bump');
+      setTimeout(() => $total.classList.remove('bump'), 150);
+    }
+
+    renderProducts();
+    renderCart();
+  </script>
+</body>
+</html>
