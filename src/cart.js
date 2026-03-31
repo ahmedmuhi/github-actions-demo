@@ -12,7 +12,7 @@ function removeItem(cart, name) {
 }
 
 function getTotal(cart) {
-  return cart.reduce((sum, entry) => sum + entry.price, 0);
+  return parseFloat(cart.reduce((sum, entry) => sum + entry.price, 0).toFixed(2));
 }
 
 module.exports = { addItem, removeItem, getTotal };
