@@ -22,3 +22,4 @@ npm run lint # Run ESLint
 ## Changelog
 
 - **2026-03-31** — Added comment header to `src/cart.js` for improved code documentation (by @ahmedmuhi)
+- **2026-03-31** — Reordered product catalog in `index.html`: Flat White and Cookie moved to top positions (by @ahmedmuhi)
