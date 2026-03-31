@@ -22,3 +22,4 @@ npm run lint # Run ESLint
 ## Changelog
 
 - **2026-03-31** — Added comment header to `src/cart.js` for improved code documentation (by @ahmedmuhi)
+- **2026-03-31** — Added Flat White (☕ $4.75) to the product catalog in `index.html` (by @ahmedmuhi)
