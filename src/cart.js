@@ -1,3 +1,4 @@
+// Shopping cart utility functions
 function addItem(cart, item, price) {
   cart.push({ item, price });
   return cart;
