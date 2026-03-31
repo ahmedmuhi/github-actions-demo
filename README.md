@@ -18,3 +18,7 @@ Open `index.html` in a browser for an interactive visual demo of the cart functi
 npm test    # Run Jest tests
 npm run lint # Run ESLint
 ```
+
+## Changelog
+
+- **2026-03-31** — Added comment header to `src/cart.js` for improved code documentation (by @ahmedmuhi)
