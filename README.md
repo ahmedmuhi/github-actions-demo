@@ -18,3 +18,7 @@ Open `index.html` in a browser for an interactive visual demo of the cart functi
 npm test    # Run Jest tests
 npm run lint # Run ESLint
 ```
+
+## Changelog
+
+- **2026-03-31** — Fixed floating point precision in `getTotal` using `parseFloat(...toFixed(2))` to ensure accurate totals (by @ahmedmuhi)
